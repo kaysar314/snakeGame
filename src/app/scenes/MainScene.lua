@@ -9,7 +9,7 @@ function MainScene:ctor()
 
     self:addChild(j)
 
-    j:setPositionY(display.height/3)
+    -- j:setPositionY(display.height/3)
 
     j:setCallback(function(event)
     	print(event)

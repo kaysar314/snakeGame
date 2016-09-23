@@ -16,16 +16,20 @@ end)
 
 local _rockerRange = nil
 local _rocker = nil
+local _rocker_bg = nil
 local _a = nil
 local _b = nil
 
+local snakeDir = cc.p(1,0)
+cc.pNormalize(snakeDir)
+
 local _rockerTouchID = -1
-local _rockerWay = 0 -- 0 1 2
+local _rockerDirection = 0.0
 local _rockerLastPoint = 0
 
 local _callback = nil
 
-local _rockerRangeValue = 300
+local _rockerRangeValue = 400
 
 local function callback( event )
 	if _callback ~= nil then
@@ -53,23 +57,42 @@ end
 function JoyRocker:ctor()
 
 	local size = display.size
+	local  _rockerX = _rockerRangeValue/2
+	local  _rockerY = _rockerX
 
+	local  snake = {}
+	local  snakeDirs = {}
+	for i = 1,20 do
+		local dot = display.newDrawNode():addTo(self):center()
+		dot:drawDot(cc.p(0,0), 10, cc.c4f(1.0,1.0,1.0,1.0))
+		local px,py = dot:getPosition()
+		dot:setPosition(px-15*i,py)
+		table.insert(snake, 1, dot)
+	end
+	-- local dot = display.newDrawNode():addTo(self):center()
+	-- dot:drawDot(cc.p(0,0), 10, cc.c4f(1.0,1.0,1.0,1.0))
+
+	_rocker_bg = ccui.Button:create("rock_bg.png"):addTo(self)
+	_rocker = ccui.Button:create("rock.png"):addTo(self)
 	_rockerRange = ccui.Widget:create()
-	_rocker = ccui.Button:create("rock.png")
 	_a = ccui.Button:create("rock.png")
 
-	_rockerRange:setContentSize(cc.size(_rockerRangeValue,_rocker:getContentSize().height))
+	_rocker:setAnchorPoint(cc.p(0.5,0.5))
 
-	_rockerRange:setPosition(cc.p(_rockerRangeValue/2,0))
+	-- _rockerRange:setContentSize(cc.size(_rockerRangeValue,_rocker:getContentSize().height))
+	-- _rockerRange:setPosition(cc.p(_rockerX,0))
 
 	--150 is not good, make it %
 	_a:setPosition(cc.p(size.width-_a:getContentSize().width-150,0))
 
-	_rocker:setPosition(cc.p(_rockerRangeValue/2,_rocker:getContentSize().height/2))
+	_rocker_bg:setPosition(cc.p(_rockerX,_rockerY))
+	_rocker_bg:setTouchEnabled(false)
+	_rocker:setPosition(cc.p(_rockerX,_rockerY))
 	_rocker:setTouchEnabled(false)
-	_rockerRange:addChild(_rocker)
+	-- _rockerRange:addChild(_rocker_bg)
+	-- _rockerRange:addChild(_rocker)
 
-	self:addChild(_rockerRange)
+	-- self:addChild(_rockerRange)
 	self:addChild(_a)
 
 	_a:addTouchEventListener(touchEvent)
@@ -79,29 +102,16 @@ function JoyRocker:ctor()
 
 	rockerDangeEvent:registerScriptHandler(function(touch,e)
 		
-		local bound = _rockerRange:getBoundingBox()
-		local newP = _rockerRange:convertToWorldSpace(cc.p(0,0))
-		bound.x = newP.x
-		bound.y = newP.y
-
 		local point = touch:getLocation()
 
-		if cc.rectContainsPoint(bound,point) then
+		if cc.pGetDistance(cc.p(_rockerX,_rockerY),point) < 250 then
 			_rockerTouchID = touch:getId()
 
-			_rockerLastPoint = point.x
+			snakeDir = cc.p(_rockerX - point.x,_rockerY - point.y )
+			snakeDir = cc.pNormalize(snakeDir)
 
-			if math.abs(math.abs(point.x-bound.x)-_rockerRangeValue/2) < 20 then
-				--dont move
-			elseif point.x - bound.x > _rockerRangeValue/2 then
-				-- right
-				_rockerWay = 2
-				callback(JoyRockerEvent.RIGHT)
-			else 
-				-- left
-				-- right
-				_rockerWay = 1
-				callback(JoyRockerEvent.LEFT)
+			if 60 < cc.pGetDistance(cc.p(_rockerX,_rockerY),point) then
+				_rocker:setPosition(cc.p(snakeDir.x*60+_rockerX,snakeDir.y*60+_rockerY))
 			end
 
 			return true
@@ -112,18 +122,62 @@ function JoyRocker:ctor()
 	end,cc.Handler.EVENT_TOUCH_BEGAN)
 
 	rockerDangeEvent:registerScriptHandler(function(touch,e)
-		
+
+		local point = touch:getLocation()
+
+		if cc.pGetDistance(cc.p(_rockerX,_rockerY),point) < 250 then
+			_rockerTouchID = touch:getId()
+
+			snakeDir = cc.p(point.x - _rockerX, point.y - _rockerY)
+			snakeDir = cc.pNormalize(snakeDir)
+
+			if 60 < cc.pGetDistance(cc.p(_rockerX,_rockerY),point) then
+				_rocker:setPosition(cc.p(snakeDir.x*60+_rockerX,snakeDir.y*60+_rockerY))
+			else
+				_rocker:setPosition(cc.p(point.x,point.y))
+			end
+
+			return true
+		end
+
+		return false
 	end,cc.Handler.EVENT_TOUCH_MOVED)
 
 	rockerDangeEvent:registerScriptHandler(function(touch,e)
-		
+		_rocker:setPosition(cc.p(_rockerX,_rockerY))
 	end,cc.Handler.EVENT_TOUCH_ENDED)
 
 	rockerDangeEvent:registerScriptHandler(function(touch,e)
-		
+		_rocker:setPosition(cc.p(_rockerX,_rockerY))
 	end,cc.Handler.EVENT_TOUCH_CANCELLED)
 
-	event:addEventListenerWithSceneGraphPriority(rockerDangeEvent, _rockerRange)
+	event:addEventListenerWithSceneGraphPriority(rockerDangeEvent, _rocker_bg)
+
+	local count = 0
+
+	self:getScheduler():scheduleScriptFunc(function(f)
+
+		local tx,ty = nil,nil
+		local px,py = nil,nil
+
+		if count > 4 then
+			count = 0
+			for key, dot in pairs(snake) do
+				if key == 1 then
+					px,py = dot:getPosition()
+					print("1: ",px,py,"\n")
+					dot:setPosition(cc.p(px+snakeDir.x*4,py+snakeDir.y*4))
+				else
+					tx,ty = dot:getPosition()
+					dot:setPosition(cc.p(px,py))
+					px,py = tx,ty
+					print(key,": ",px,py,"\n")
+				end
+			-- print(key,var)  
+    		end
+    	end
+    	count = count + 1
+	end,0,false)
 
 end
 
