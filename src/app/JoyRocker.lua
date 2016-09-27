@@ -1,16 +1,47 @@
-local JoyRockerEvent = {
-	A = "A",
+-- queen
+List = {} 
+function List.new()  
+    return {first = 0,last = -1}  
+end  
+  
+-- insert at front  
+function List.pushFront(list,value)  
+    local first = list.first - 1  
+    list.first = first  
+    list[first] = value  
+end  
 
-	CANSEL_A = "CANSEL_A",
+function List.pushBack(list,value)  
+    local last = list.last + 1  
+    list.last = last  
+    list[last] = value
+end  
 
-	LEFT="LEFT",
-	RIGHT="RIGHT",
-
-	CANSEL_LEFT = "CANSEL_LEFT",
-	CANSEL_RIGHT = "CANSEL_RIGHT"
-}
+function List.popFront(list)  
+    local first = list.first  
+    if first > list.last then  
+        error("List is empty")  
+    end  
+      
+    local value = list[first]  
+    list[first] = nil  
+    list.first = first + 1  
+    return value  
+end  
+  
+function List.popBack(list)  
+    local last = list.last  
+    if list.first > last then  
+        error("List is empty")  
+    end  
+    local value = list[last]  
+    list[last] = nil  
+    list.last = last - 1   
+    return value  
+end 
 
 local JoyRocker = class("JoyRocker", function()
+	
 	return display.newLayer("JoyRocker")
 end)
 
@@ -20,6 +51,18 @@ local _rocker_bg = nil
 local _a = nil
 local _b = nil
 
+local speedUp = false
+
+local hadPos = cc.p(0,0)
+local  snake = {}
+local DirectionList = {first = 0, last = -1}
+local snakeLen = 20
+-- last
+local snakeLastLen = 20
+local addSnake = false
+
+local count = 0
+
 local snakeDir = cc.p(1,0)
 cc.pNormalize(snakeDir)
 
@@ -27,31 +70,22 @@ local _rockerTouchID = -1
 local _rockerDirection = 0.0
 local _rockerLastPoint = 0
 
-local _callback = nil
-
 local _rockerRangeValue = 400
 
-local function callback( event )
-	if _callback ~= nil then
-		_callback(event)
-	end
-end
-
 local function touchEvent(obj, type)
-	if type == ccui.TouchEventType.bagan then
+	if type == ccui.TouchEventType.began then
 		if obj == _a then
-			callback(JoyRockerEvent.A)
+			speedUp = true
 		end
 	elseif type == ccui.TouchEventType.ended then
 		if obj == _a then
-			callback(JoyRockerEvent.CANSEL_A)
+			speedUp = false
 		end
-	elseif type == ccui.TouchEventType.cancelled then
+	elseif type == 3 then
 		if obj == _a then
-			callback(JoyRockerEvent.CANSEL_A)
+			speedUp = false
 		end
 	end
-
 end
 
 function JoyRocker:ctor()
@@ -60,18 +94,24 @@ function JoyRocker:ctor()
 	local  _rockerX = _rockerRangeValue/2
 	local  _rockerY = _rockerX
 
-	local  snake = {}
-	local  snakeDirs = {}
-	for i = 1,20 do
+	local coun = false
+	for i = 1,4 do
 		local dot = display.newDrawNode():addTo(self):center()
-		dot:drawDot(cc.p(0,0), 10, cc.c4f(1.0,1.0,1.0,1.0))
+		if coun then
+			coun = false
+			dot:drawDot(cc.p(0,0), 9, cc.c4f(0.4,0.5,0,1.0))
+		else
+			dot:drawDot(cc.p(0,0), 9, cc.c4f(0,0.6,0.7,1.0))
+			coun = true
+		end
 		local px,py = dot:getPosition()
-		dot:setPosition(px-15*i,py)
+		dot:setPosition(px+12*i,py)
 		table.insert(snake, 1, dot)
 	end
-	-- local dot = display.newDrawNode():addTo(self):center()
-	-- dot:drawDot(cc.p(0,0), 10, cc.c4f(1.0,1.0,1.0,1.0))
 
+	for i = 1,16 do
+		List.pushFront(DirectionList,snakeDir)
+	end
 	_rocker_bg = ccui.Button:create("rock_bg.png"):addTo(self)
 	_rocker = ccui.Button:create("rock.png"):addTo(self)
 	_rockerRange = ccui.Widget:create()
@@ -79,20 +119,13 @@ function JoyRocker:ctor()
 
 	_rocker:setAnchorPoint(cc.p(0.5,0.5))
 
-	-- _rockerRange:setContentSize(cc.size(_rockerRangeValue,_rocker:getContentSize().height))
-	-- _rockerRange:setPosition(cc.p(_rockerX,0))
-
-	--150 is not good, make it %
-	_a:setPosition(cc.p(size.width-_a:getContentSize().width-150,0))
+	_a:setPosition(cc.p(size.width-_a:getContentSize().width-150,_rockerY))
 
 	_rocker_bg:setPosition(cc.p(_rockerX,_rockerY))
 	_rocker_bg:setTouchEnabled(false)
 	_rocker:setPosition(cc.p(_rockerX,_rockerY))
 	_rocker:setTouchEnabled(false)
-	-- _rockerRange:addChild(_rocker_bg)
-	-- _rockerRange:addChild(_rocker)
 
-	-- self:addChild(_rockerRange)
 	self:addChild(_a)
 
 	_a:addTouchEventListener(touchEvent)
@@ -125,7 +158,7 @@ function JoyRocker:ctor()
 
 		local point = touch:getLocation()
 
-		if cc.pGetDistance(cc.p(_rockerX,_rockerY),point) < 250 then
+		if cc.pGetDistance(cc.p(_rockerX,_rockerY),point) < 550 then
 			_rockerTouchID = touch:getId()
 
 			snakeDir = cc.p(point.x - _rockerX, point.y - _rockerY)
@@ -153,36 +186,110 @@ function JoyRocker:ctor()
 
 	event:addEventListenerWithSceneGraphPriority(rockerDangeEvent, _rocker_bg)
 
-	local count = 0
-
 	self:getScheduler():scheduleScriptFunc(function(f)
 
 		local tx,ty = nil,nil
 		local px,py = nil,nil
 
-		if count > 4 then
-			count = 0
-			for key, dot in pairs(snake) do
-				if key == 1 then
+		local jud = false
+
+		if addSnake then
+			addLength(self)
+			addSnake = false
+		end
+
+		List.pushFront(DirectionList,snakeDir)
+		List.popBack(DirectionList)
+
+		if speedUp then
+			jud = true
+			List.pushFront(DirectionList,snakeDir)
+			List.popBack(DirectionList)
+		end
+		
+		index = DirectionList.first
+		for key, dot in pairs(snake) do
+
+			px,py = dot:getPosition()
+			if DirectionList[index] ~= nil then
+				dot:setPosition(cc.p(px+DirectionList[index].x*3,py+DirectionList[index].y*3))
+				
+				if jud then
+					index = index + 1
 					px,py = dot:getPosition()
-					print("1: ",px,py,"\n")
-					dot:setPosition(cc.p(px+snakeDir.x*4,py+snakeDir.y*4))
-				else
-					tx,ty = dot:getPosition()
-					dot:setPosition(cc.p(px,py))
-					px,py = tx,ty
-					print(key,": ",px,py,"\n")
+					dot:setPosition(cc.p(px+DirectionList[index].x*3,py+DirectionList[index].y*3))
 				end
-			-- print(key,var)  
+			end
+			
+			if key == 1 then
+				xx,yy = dot:getPosition()
+				hadPos = cc.p(xx,yy)
+			end
+
+			if jud then
+				index = index + 3
+			else
+				index = index + 4
     		end
     	end
-    	count = count + 1
+
 	end,0,false)
 
 end
 
-function JoyRocker:setCallback(callback)
-	_callback = callback
+local col = false
+
+function addLength(self)
+	local tmp = snake[table.getn(snake)]
+	local dirtmp = DirectionList[DirectionList.last-3]
+
+	local dot = display.newDrawNode():addTo(self):center()
+
+	if col then
+		dot:drawDot(cc.p(0,0), 9, cc.c4f(0,0.6,0.7,1.0))
+		col = false
+	else
+		dot:drawDot(cc.p(0,0), 9, cc.c4f(0.4,0.5,0,1.0))
+		col = true
+	end
+
+	px,py = tmp:getPosition()
+	dot:setPosition(cc.p(px-dirtmp.x*12,py-dirtmp.y*12))
+
+	for i =1,4 do
+		List.pushBack(DirectionList,dirtmp)
+	end
+	table.insert(snake, dot)
+
+end
+
+function JoyRocker:getHeadPos()
+	return hadPos
+end
+
+function JoyRocker:getSnakeLen()
+	return snakeLen
+end
+
+function JoyRocker:getSnakeLastLen()
+	return snakeLastLen
+end
+
+function JoyRocker:addSnakeLen()
+	snakeLen = snakeLen + 1 
+end
+
+function JoyRocker:canAddLen()
+	if snakeLen - snakeLastLen > 4 then
+		snakeLastLen = snakeLen
+		return true
+	end
+
+	return false
+end
+
+function JoyRocker:setAddSnake()
+	addSnake = true 
 end
 
 return JoyRocker
