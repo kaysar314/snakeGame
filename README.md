@@ -1,5 +1,7 @@
-* A Snake Game
+# Snake Game
+a game about snakes' world
 
-** Up to now:
-1.add a button for speeding up snake
-2.add a joyRocker to control the snake's direction
+## RULES:
+* use JoyRocker control direction of snake's head
+* snake will move ahead all the time
+* eat little dot to grow

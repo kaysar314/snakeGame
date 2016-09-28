@@ -2,7 +2,7 @@ Quick-Cocos2dx-Community C++ support ready.
 
 ------------------------------------------------
 
-LOAD LUA FILE: D:/myprojects/snakeGame/src/main.lua
+LOAD LUA FILE: D:/gitLabProjects/hse0724/src/main.lua
 
 ------------------------------------------------
 
@@ -24,7 +24,7 @@ LOAD LUA FILE: D:/myprojects/snakeGame/src/main.lua
 
 [LUA-print] [INFO] # device.language              = cn
 
-[LUA-print] [INFO] # device.writablePath          = D:\myprojects\snakeGame\
+[LUA-print] [INFO] # device.writablePath          = D:\gitLabProjects\hse0724\
 
 [LUA-print] [INFO] # device.directorySeparator    = \
 
