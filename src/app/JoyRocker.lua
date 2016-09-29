@@ -1,6 +1,5 @@
-
+-- by kaysar, 2016-9-27
 local JoyRocker = class("JoyRocker", function()
-	
 	return display.newLayer("JoyRocker")
 end)
 
