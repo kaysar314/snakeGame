@@ -14,10 +14,9 @@ local dh = display.height
 function Food:ctor()
 
 	-- add 1600 food in game
-	for i = 1,1600 do
+	for i = 1,500 do
     	addPoint(self)
     end
-
 end
 
 -- eat food, call in MainScene

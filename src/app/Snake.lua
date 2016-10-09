@@ -3,44 +3,34 @@ local Snake = class("Snake", function()
 	return display.newLayer("Snake")
 end)
 
--- speed up button down speedUp will be true, weather be false
--- local speedUp = false
-
--- the position of Snake's head
--- local headPos = cc.p(0,0)
-
--- snake's body, make with lots of dots
-
-
--- every dot of snake has 4 directions
--- store in a queue, every time JoyRocker get a direction, 
--- insert it in the front of queue, and remove the last direction
--- local DirectionList = {first = 0, last = -1}
-
--- length of snake, a dot's length is 5
--- local snakeLen = 20
-
--- storing the length of snake when it grows one more dot
--- for knowing when it has 5 more length grows
--- local snakeLastLen = 20
-
--- when need to growing one dot for snake, this will be true
--- local addSnake = false
-
--- real-time snake's direction, from JoyRocker
--- local snakeDir = cc.p(1,0)
--- cc.pNormalize(snakeDir)
-
 function Snake:ctor()
 
+	-- when need to growing one dot for snake, this will be true
 	self.addSnake = false
+
+	-- storing the length of snake when it grows one more dot
+	-- for knowing when it has 5 more length grows
 	self.snakeLastLen = 20
+
+	-- length of snake, a dot's length is 5
 	self.snakeLen = 20
+
+	-- the position of Snake's head
 	self.headPos = cc.p(0,0)
+
+	-- snake's body, make with lots of dots
 	self.snake = {}
+
+	-- every dot of snake has 4 directions
+	-- store in a queue, every time JoyRocker get a direction, 
+	-- insert it in the front of queue, and remove the last direction
 	self.DirectionList = {first = 0, last = -1}
+
 	-- ues to change dot's color
 	self.changeColor = false
+
+	self.color1 = randomColor()
+	self.color2 = randomColor()
 
 	-- at first, there are 4 dots for snake's body
 	for i = 1,4 do
@@ -49,9 +39,9 @@ function Snake:ctor()
 		-- weather need to change color
 		if self.changeColor then
 			self.changeColor = false
-			dot:drawDot(cc.p(0,0), 9, cc.c4f(0.4,0.5,0,1.0))
+			dot:drawDot(cc.p(0,0), 9, self.color1)
 		else
-			dot:drawDot(cc.p(0,0), 9, cc.c4f(0,0.6,0.7,1.0))
+			dot:drawDot(cc.p(0,0), 9, self.color2)
 			self.changeColor = true
 		end
 
@@ -99,15 +89,15 @@ function Snake:Move(self,snakeDir,speedUp,heads)
 	
 	-- index is the postion of direction at now
 	local index = self.DirectionList.first
-
 	-- loop to deal with each dot of snake, and let it move
 	for key, dot in pairs(self.snake) do
 		px,py = dot:getPosition()
+
+		-- get the head info that hit on other snake and dead
 		for hkey,hp in pairs(heads) do
-			-- print(cc.pGetDistance(cc.p(px,py),cc.p(hp.x,hp.y)))
-			-- if 16 > cc.pGetDistance(cc.p(px,py),cc.p(hp.x,hp.y)) then
-			-- 	table.insert(hitHead,hkey)
-			-- end
+			if 16 > cc.pGetDistance(cc.p(px,py),cc.p(hp.x,hp.y)) then
+				table.insert(hitHead,hkey)
+			end
 		end
 		if self.DirectionList[index] ~= nil then
 
@@ -153,10 +143,10 @@ function addLength(self)
 
 	-- change the color
 	if col then
-		dot:drawDot(cc.p(0,0), 9, cc.c4f(0,0.6,0.7,1.0))
+		dot:drawDot(cc.p(0,0), 9, self.color2)
 		col = false
 	else
-		dot:drawDot(cc.p(0,0), 9, cc.c4f(0.4,0.5,0,1.0))
+		dot:drawDot(cc.p(0,0), 9, self.color1)
 		col = true
 	end
 
@@ -259,5 +249,9 @@ function List.popBack(list)
     list.last = last - 1   
     return value  
 end 
+
+function randomColor()
+	return cc.c4b(math.random(100,255),math.random(100,255),math.random(100,255),1.0)
+end
 
 return Snake
