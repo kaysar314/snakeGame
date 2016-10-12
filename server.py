@@ -3,16 +3,9 @@ import SocketServer
 from time import ctime 
 import simplejson
 
-playerCount = []
-
-snakePos = None
+player = {}
 foods = None
-eatFoods = None
-allDirections = None
-directions = None
-names = None
-dataBig = None
-dataSmall = None
+data = None
 
 HOST = '127.0.0.1' 
 PORT = 8080 
@@ -23,20 +16,26 @@ class MyRequestHandler(SocketServer.BaseRequestHandler):
        print '...connected from:', self.client_address 
        while True: 
             dict = simplejson.loads(self.request.recv(1024))
-            data[dict["name"]]["mySnakePos"] = dict["mySnakePos"]
-
-            
-            if dict["food"] != None and dict["food"] != "had":
-                foods = dict["food"]
+            data[dict["name"]]["snakePos"] = dict["mySnakePos"]
+            data[dict["name"]]["color"] = dict["color"]
 
             sendData = {}
             sendData["map"] = 1
-            if playerCount == 0 or dict["food"] == "had":
-                sendData["food"] = None
-            else :
-                sendData["food"] = foods
 
-            self.request.sendall(self.request.recv(1024)) 
+            if dict["type"] == "ctor":
+                player[dict["name"]] = ''
+                if len(dict) == 1:
+                    sendData["food"] = None
+                else:
+                    sendData["food"] = foods
+            else:
+                if dict["food"] != None:
+                    foods = dict["food"]
+
+            sendData["data"] = data
+            sendData["live"] = True
+
+            self.request.sendall(simplejson.drump(sendData))
            
 tcpServ = SocketServer.ThreadingTCPServer(ADDR, MyRequestHandler) 
 print 'waiting for connection...' 

@@ -34,12 +34,22 @@ local json = require("json")
 --     end
 -- end
 
-local a = {}
-table.insert(a, 1)
-table.insert(a, 2)
-table.insert(a, 3)
-table.insert(a, 4)
-table.insert(a, 5)
-table.insert(a, 6)
-table.insert(a, 7)
-print(json.encode(a))
+-- local a = {1, 2, 3}
+-- a["2"] = 3
+-- table.insert(a, 1)
+-- table.insert(a, 2)
+-- table.insert(a, 3)
+-- table.insert(a, 4)
+-- table.insert(a, 5)
+-- table.insert(a, 6)
+-- table.insert(a, 7)
+-- print(a[6])
+-- print(a["6"])
+-- print(json.encode(a))
+
+pair = "2231,333"
+
+_, _, key, value = string.find(pair, "(%d+)%s*,%s*(%d+)")
+
+print(key)
+print(value)
