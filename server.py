@@ -4,8 +4,8 @@ from time import ctime
 import simplejson
 
 player = {}
-foods = None
-data = None
+foods = {}
+data = {}
 
 HOST = '127.0.0.1' 
 PORT = 8080 
@@ -15,27 +15,29 @@ class MyRequestHandler(SocketServer.BaseRequestHandler):
    def handle(self): 
        print '...connected from:', self.client_address 
        while True: 
-            dict = simplejson.loads(self.request.recv(1024))
-            data[dict["name"]]["snakePos"] = dict["mySnakePos"]
-            data[dict["name"]]["color"] = dict["color"]
+            dic = simplejson.loads(self.request.recv(1024))
 
+            data[dic["name"]] = {"snakePos":dic["mySnakePos"],"color":dic["color"]}
+
+            print dic
             sendData = {}
             sendData["map"] = 1
 
-            if dict["type"] == "ctor":
-                player[dict["name"]] = ''
-                if len(dict) == 1:
+            if dic.get("type") == "ctor":
+                player[dic["name"]] = ''
+                print player
+                if len(dic) == 1:
                     sendData["food"] = None
-                else:
-                    sendData["food"] = foods
+                # else:
+                    # sendData["food"] = foods
             else:
-                if dict["food"] != None:
-                    foods = dict["food"]
-
+                if dic["food"] != None:
+                    foods = dic["food"]
+            print data
             sendData["data"] = data
             sendData["live"] = True
-
-            self.request.sendall(simplejson.drump(sendData))
+            print simplejson.dumps(sendData)+'\n'
+            self.request.sendall(simplejson.dumps(sendData)+'\n')
            
 tcpServ = SocketServer.ThreadingTCPServer(ADDR, MyRequestHandler) 
 print 'waiting for connection...' 
