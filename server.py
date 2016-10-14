@@ -18,25 +18,23 @@ class MyRequestHandler(SocketServer.BaseRequestHandler):
             dic = simplejson.loads(self.request.recv(1024))
 
             data[dic["name"]] = {"snakePos":dic["mySnakePos"],"color":dic["color"]}
-
-            print dic
             sendData = {}
             sendData["map"] = 1
 
             if dic.get("type") == "ctor":
                 player[dic["name"]] = ''
-                print player
-                if len(dic) == 1:
-                    sendData["food"] = None
+                print "player num: ",len(player)
+                if len(player) == 1:
+                    print "has no food"
+                    sendData["food"] = 0
                 # else:
-                    # sendData["food"] = foods
+                #     print "get food"
+                #     sendData["food"] = foods
             else:
-                if dic["food"] != None:
+                if dic["food"] != 0:
                     foods = dic["food"]
-            print data
             sendData["data"] = data
             sendData["live"] = True
-            print simplejson.dumps(sendData)+'\n'
             self.request.sendall(simplejson.dumps(sendData)+'\n')
            
 tcpServ = SocketServer.ThreadingTCPServer(ADDR, MyRequestHandler) 
