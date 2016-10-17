@@ -13,9 +13,9 @@ ADDR = (HOST, PORT)
 
 class MyRequestHandler(SocketServer.BaseRequestHandler): 
    def handle(self): 
-       print '...connected from:', self.client_address 
+       print '...connected from:', self.client_address
        while True: 
-            dic = simplejson.loads(self.request.recv(1024))
+            dic = simplejson.loads(self.request.recv(10240))
 
             data[dic["name"]] = {"snakePos":dic["mySnakePos"],"color":dic["color"]}
             sendData = {}
