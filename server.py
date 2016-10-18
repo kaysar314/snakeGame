@@ -7,8 +7,8 @@ player = {}
 foods = {}
 data = {}
 
-HOST = '127.0.0.1' 
-PORT = 8080 
+HOST = '139.129.59.141' 
+PORT = 9080 
 ADDR = (HOST, PORT) 
 
 class MyRequestHandler(SocketServer.BaseRequestHandler): 
@@ -17,7 +17,7 @@ class MyRequestHandler(SocketServer.BaseRequestHandler):
        while True: 
             dic = simplejson.loads(self.request.recv(10240))
 
-            data[dic["name"]] = {"snakePos":dic["mySnakePos"],"color":dic["color"]}
+            data[dic["name"]] = {"snakePos":dic["mySnakePos"],"color":dic["color"],"live":dic["live"]}
             sendData = {}
             sendData["map"] = 1
 
@@ -34,7 +34,6 @@ class MyRequestHandler(SocketServer.BaseRequestHandler):
                 if dic["food"] != 0:
                     foods = dic["food"]
             sendData["data"] = data
-            sendData["live"] = True
             self.request.sendall(simplejson.dumps(sendData)+'\n')
            
 tcpServ = SocketServer.ThreadingTCPServer(ADDR, MyRequestHandler) 
