@@ -67,7 +67,7 @@ player = {}
 foods = {}
 data = {}
     
-SERVER = '139.129.59.141'
+SERVER = '127.0.0.1'
 PORT = 6666
 MAXTHREADS = 20
 RECVBUFLEN = 10240
@@ -90,11 +90,11 @@ class ComunicateServer(threading.Thread):
                 lock.release()
                 break
             dic = simplejson.loads(d)
-            data[dic["name"]] = {"snakePos":dic["mySnakePos"],"color":dic["color"],"live":dic["live"]}
             sendData = {}
             sendData["map"] = 1
 
             if dic.get("type") == "ctor":
+                data[dic["name"]] = {"snakePos":dic["mySnakePos"],"color":dic["color"],"myDirecs":dic["myDirecs"]}
                 player[dic["name"]] = ''
                 print "player num: ",len(player)
                 if len(player) == 1:
@@ -104,6 +104,7 @@ class ComunicateServer(threading.Thread):
                 #     print "get food"
                 #     sendData["food"] = foods
             else:
+                data[dic["name"]] = {"myDirecs":dic["myDirecs"],"live":dic["live"]}
                 if dic["food"] != 0:
                     foods = dic["food"]
             sendData["data"] = data
@@ -113,7 +114,7 @@ class ComunicateServer(threading.Thread):
         del data[self.address[0]+str(self.address[1])]
         del player[self.address[0]+str(self.address[1])]
         self.socket.close()  
-  
+
 class ListenServer(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
