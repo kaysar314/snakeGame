@@ -66,6 +66,8 @@ lock = threading.Lock()
 player = {}
 foods = {}
 data = {}
+
+addNew = ["false"]
     
 SERVER = '127.0.0.1'
 PORT = 6666
@@ -82,37 +84,48 @@ class ComunicateServer(threading.Thread):
 
     def run(self):
         while True:
-            lock.acquire()
-            print self.address
             try:
                 d = self.socket.recv(10240)
             except:
-                lock.release()
                 break
             dic = simplejson.loads(d)
             sendData = {}
             sendData["map"] = 1
 
             if dic.get("type") == "ctor":
-                data[dic["name"]] = {"snakePos":dic["mySnakePos"],"color":dic["color"],"myDirecs":dic["myDirecs"]}
+                print "dir: ",dic["myDirections"]
+                data[dic["name"]] = {"myDirections":dic["myDirections"],"snakePos":dic["mySnakePos"],"color":dic["color"],"myDirecs":dic["myDirecs"]}
                 player[dic["name"]] = ''
                 print "player num: ",len(player)
                 if len(player) == 1:
                     print "has no food"
                     sendData["food"] = 0
+                addNew[0] = "true"
+                for an in player:
+                    if an != dic["name"]:
+                        addNew.append(an)
                 # else:
                 #     print "get food"
                 #     sendData["food"] = foods
-            else:
+            elif dic.get("type") == "loop":
                 data[dic["name"]] = {"myDirecs":dic["myDirecs"],"live":dic["live"]}
+                if dic.get("snakePos") != None :
+                    data[dic["name"]] = {"myDirections":dic["myDirections"],"color":dic["color"],"snakePos":dic["snakePos"],"myDirecs":dic["myDirecs"],"live":dic["live"]}
                 if dic["food"] != 0:
                     foods = dic["food"]
+                if dic.get("addNew") != None :
+                    addNew[0] = "true"
+                    for an in dic["addNew"]:
+                        if an != dic["name"]:
+                            addNew.append(an)
+            if addNew[0] == "true" and dic["name"] in addNew:
+                addNew.remove(dic["name"])
+                sendData["type"] = "addNew"
             sendData["data"] = data
             # print self.client_address,": \n",data,"\n"
             self.socket.send(simplejson.dumps(sendData)+'\n')
-            lock.release()
-        del data[self.address[0]+str(self.address[1])]
-        del player[self.address[0]+str(self.address[1])]
+        del data[str(self.address[1])]
+        del player[str(self.address[1])]
         self.socket.close()  
 
 class ListenServer(threading.Thread):
