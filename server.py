@@ -93,8 +93,7 @@ class ComunicateServer(threading.Thread):
             sendData["map"] = 1
 
             if dic.get("type") == "ctor":
-                print "dir: ",dic["myDirections"]
-                data[dic["name"]] = {"myDirections":dic["myDirections"],"snakePos":dic["mySnakePos"],"color":dic["color"],"myDirecs":dic["myDirecs"]}
+                data[dic["name"]] = {"snakePos":dic["mySnakePos"],"color":dic["color"],"myShadows":dic["myShadows"],"mySnakeFir":dic["mySnakeFir"]}
                 player[dic["name"]] = ''
                 print "player num: ",len(player)
                 if len(player) == 1:
@@ -108,9 +107,12 @@ class ComunicateServer(threading.Thread):
                 #     print "get food"
                 #     sendData["food"] = foods
             elif dic.get("type") == "loop":
-                data[dic["name"]] = {"myDirecs":dic["myDirecs"],"live":dic["live"]}
+                data[dic["name"]] = {"myShadows":dic["myShadows"],"live":dic["live"]}
                 if dic.get("snakePos") != None :
-                    data[dic["name"]] = {"myDirections":dic["myDirections"],"color":dic["color"],"snakePos":dic["snakePos"],"myDirecs":dic["myDirecs"],"live":dic["live"]}
+                    if dic.get("live"):
+                        data[dic["name"]] = {"color":dic["color"],"snakePos":dic["snakePos"],"myShadows":dic["myShadows"],"mySnakeFir":dic["mySnakeFir"],"live":dic["live"]}
+                    else:
+                        data[dic["name"]] = {"snakePos":dic["snakePos"],"myShadows":dic["myShadows"],"live":dic["live"]}
                 if dic["food"] != 0:
                     foods = dic["food"]
                 if dic.get("addNew") != None :
