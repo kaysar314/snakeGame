@@ -108,6 +108,8 @@ class ComunicateServer(threading.Thread):
                 #     sendData["food"] = foods
             elif dic.get("type") == "loop":
                 data[dic["name"]] = {"myShadows":dic["myShadows"],"live":dic["live"]}
+                if dic.get("headtime"):
+                    data[dic["name"]] = {"myShadows":dic["myShadows"],"live":dic["live"],"headtime":dic["headtime"]}
                 if dic.get("snakePos") != None :
                     if dic.get("live"):
                         data[dic["name"]] = {"color":dic["color"],"snakePos":dic["snakePos"],"myShadows":dic["myShadows"],"mySnakeFir":dic["mySnakeFir"],"live":dic["live"]}
