@@ -193,15 +193,24 @@ function Snake:Move(self,speedUp,largeStep)
 	-- and push to Direction queue, remove the end of queue
 	-- List.pushFront(self.shadowList,snakeDir)
 	if self.shadowList.last >= self.shadowList.first then
-		-- print(self.shadowList[self.shadowList.first][1],self.snake.first)
-		-- if self.shadowList[self.shadowList.last][1] == self.snake.first then
+
+		local xx,yy = self.shadowList[self.shadowList.last][2],self.shadowList[self.shadowList.last][3]
+		local fx,fy = self.snake[self.snake.first]:getPosition()
+		if self.shadowList[self.shadowList.last][4] then
+
 			List.pushFront(self.snake,List.popBack(self.snake))
-			local xx,yy = self.shadowList[self.shadowList.last][2],self.shadowList[self.shadowList.last][3]
+			self.snake[self.snake.first]:setPosition(cc.p((xx+fx)/2,(yy+fy)/2))
+
+			List.pushFront(self.snake,List.popBack(self.snake))
 			self.snake[self.snake.first]:setPosition(cc.p(xx,yy))
-			self.headPos = {self.snake.first,xx,yy}
-		-- end
+		else
+			List.pushFront(self.snake,List.popBack(self.snake))
+			self.snake[self.snake.first]:setPosition(cc.p(xx,yy))
+		end
+	
+		self.headPos = {self.snake.first,xx,yy}
+
 		List.popBack(self.shadowList)
-		-- return self.shadowList[self.shadowList.first][1]
 	end
 	
 	-- at mainscene get the speedUp button's state
@@ -243,6 +252,13 @@ function Snake:addShadow(list)
 		if self.shadowList.last >= self.shadowList.first then
 			if self.shadowList[self.shadowList.first][1] == list[15-i+1][1] + 1 then
 				List.pushFront(self.shadowList,list[15-i+1])
+			else 
+				if self.shadowList[self.shadowList.first][1] == list[15-i+1][1] + 2 then
+					List.pushFront(self.shadowList,list[15-i+1])
+				end
+			end
+			if self.shadowList.last - self.shadowList.first > 12 then
+				List.popBack(self.shadowList)
 			end
 		else
 			if self.snake.first > list[15-i+1][1] then

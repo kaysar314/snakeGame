@@ -47,9 +47,9 @@ function JoyRocker:ctor(head)
 	for i = 1,15 do
 		self.PosList.first = self.PosList.first - 1
 		if self.PosList.last > self.PosList.first then
-			self.PosList[self.PosList.first] = {self.first,self.PosList[self.PosList.first+1][2]+self.snakeDir.x*3,self.PosList[self.PosList.first+1][3]+self.snakeDir.y*3}
+			self.PosList[self.PosList.first] = {self.first,self.PosList[self.PosList.first+1][2]+self.snakeDir.x*3,self.PosList[self.PosList.first+1][3]+self.snakeDir.y*3,false}
 		else
-    		self.PosList[self.PosList.first] = {self.first,self.headpos[1]+self.snakeDir.x*3,self.headpos[2]+self.snakeDir.y*3}
+    		self.PosList[self.PosList.first] = {self.first,self.headpos[1]+self.snakeDir.x*3,self.headpos[2]+self.snakeDir.y*3,false}
 		end
 		self.first = self.first - 1
 	end
@@ -108,10 +108,19 @@ function JoyRocker:ctor(head)
 	self:getScheduler():scheduleScriptFunc(function()
 
     	self.PosList.first = self.PosList.first - 1 
-    	self.PosList[self.PosList.first] = {self.first,self.PosList[self.PosList.first+1][2]+self.snakeDir.x*3,self.PosList[self.PosList.first+1][3]+self.snakeDir.y*3}
+    	local movement = 3
+    	local jud = false
+    	if speedUp then
+    		jud = true
+    		movement = 6
+    	end
+    	self.PosList[self.PosList.first] = {self.first,self.PosList[self.PosList.first+1][2]+self.snakeDir.x*movement,self.PosList[self.PosList.first+1][3]+self.snakeDir.y*movement,jud}
+    	if jud then
+    		self.first = self.first-1
+    	end
     	self.first = self.first-1
-    	if self.PosList[last] then
-	    	self.PosList[last] = nil
+    	if self.PosList[self.PosList.last] then
+	    	self.PosList[self.PosList.last] = nil
     		self.PosList.last = self.PosList.last - 1 
     	end
 
@@ -153,6 +162,13 @@ end
 
 function JoyRocker:getSpeedUp()
 	return speedUp
+end
+
+function JoyRocker:getSnakeDir()
+
+	local x1,y1 = self.PosList[self.PosList.last][2],self.PosList[self.PosList.last][3]
+	local x2,y2 = self.PosList[self.PosList.last-1][2],self.PosList[self.PosList.last-1][3]
+	return cc.pNormalize(cc.p(x2-x1,y2-y1))
 end
 
 return JoyRocker
